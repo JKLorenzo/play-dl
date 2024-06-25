@@ -297,15 +297,17 @@ export async function video_basic_info(url: string, options: InfoOptions = {}): 
     });
     let format = [];
     if (!upcoming) {
-        format.push(...(player_response.streamingData.formats ?? []));
-        format.push(...(player_response.streamingData.adaptiveFormats ?? []));
+        // TODO: Properly handle the formats, for now ignore and use iOS formats
+        //format.push(...(player_response.streamingData.formats ?? []));
+        //format.push(...(player_response.streamingData.adaptiveFormats ?? []));
 
         // get the formats for the android player for legacy videos
         // fixes the stream being closed because not enough data
         // arrived in time for ffmpeg to be able to extract audio data
-        if (parseAudioFormats(format).length === 0 && !options.htmldata) {
-            format = await getAndroidFormats(vid.videoId, cookieJar, body);
-        }
+        //if (parseAudioFormats(format).length === 0 && !options.htmldata) {
+        //    format = await getAndroidFormats(vid.videoId, cookieJar, body);
+        //}
+        format = await getIosFormats(vid.videoId, cookieJar, body);
     }
     const LiveStreamData = {
         isLive: video_details.live,
@@ -404,15 +406,17 @@ export async function video_stream_info(url: string, options: InfoOptions = {}):
     };
     let format = [];
     if (!upcoming) {
-        format.push(...(player_response.streamingData.formats ?? []));
-        format.push(...(player_response.streamingData.adaptiveFormats ?? []));
+        // TODO: Properly handle the formats, for now ignore and use iOS formats
+        //format.push(...(player_response.streamingData.formats ?? []));
+        //format.push(...(player_response.streamingData.adaptiveFormats ?? []));
 
         // get the formats for the android player for legacy videos
         // fixes the stream being closed because not enough data
         // arrived in time for ffmpeg to be able to extract audio data
-        if (parseAudioFormats(format).length === 0 && !options.htmldata) {
-            format = await getAndroidFormats(player_response.videoDetails.videoId, cookieJar, body);
-        }
+        //if (parseAudioFormats(format).length === 0 && !options.htmldata) {
+        //    format = await getAndroidFormats(player_response.videoDetails.videoId, cookieJar, body);
+        //}
+        format = await getIosFormats(player_response.videoDetails.videoId, cookieJar, body);
     }
 
     const LiveStreamData = {
@@ -708,6 +712,38 @@ async function getAndroidFormats(videoId: string, cookieJar: { [key: string]: st
     });
 
     return JSON.parse(response).streamingData.formats;
+}
+
+async function getIosFormats(videoId: string, cookieJar: { [key: string]: string }, body: string): Promise<any[]> {
+    const apiKey =
+        body.split('INNERTUBE_API_KEY":"')[1]?.split('"')[0] ??
+        body.split('innertubeApiKey":"')[1]?.split('"')[0] ??
+        DEFAULT_API_KEY;
+
+    const response = await request(`https://www.youtube.com/youtubei/v1/player?key=${apiKey}&prettyPrint=false`, {
+        method: 'POST',
+        body: JSON.stringify({
+            context: {
+                client: {
+                    clientName: 'IOS',
+                    clientVersion: '19.09.3',
+                    deviceModel: 'iPhone16,1',
+                    userAgent: 'com.google.ios.youtube/19.09.3 (iPhone; CPU iPhone OS 17_5 like Mac OS X)',
+                    hl: 'en',
+                    timeZone: 'UTC',
+                    utcOffsetMinutes: 0
+                }
+            },
+            videoId: videoId,
+            playbackContext: { contentPlaybackContext: { html5Preference: 'HTML5_PREF_WANTS' } },
+            contentCheckOk: true,
+            racyCheckOk: true
+        }),
+        cookies: true,
+        cookieJar
+    });
+
+    return JSON.parse(response).streamingData.adaptiveFormats;
 }
 
 function getWatchPlaylist(response: any, body: any, url: string): YouTubePlayList {

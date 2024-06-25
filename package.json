@@ -11,6 +11,7 @@
   "scripts": {
     "build": "tsup",
     "build:check": "tsc --noEmit --incremental false",
+    "prepare": "npm run build",
     "pretty": "prettier --config .prettierrc \"play-dl/*.ts\" \"play-dl/*/*.ts\" \"play-dl/*/*/*.ts\" --write ",
     "prepublishOnly": "tsup"
   },

@@ -466,6 +466,28 @@ function attachListeners(player: EventEmitter, resource: YouTubeStream | SoundCl
     player.once(AudioPlayerStatus.Idle, idleListener);
 }
 
+enum PDLEvents {
+    debug,
+    error,
+    unhandledException
+}
+
+const events = new EventEmitter();
+
+function emit<Event extends keyof typeof PDLEvents>(eventName: Event, ...args: any[]) {
+    return events.emit(eventName, args);
+}
+
+function on<Event extends keyof typeof PDLEvents>(eventName: Event, listener: (...args: any[]) => void) {
+    return events.on(eventName, listener);
+}
+
+function once<Event extends keyof typeof PDLEvents>(eventName: Event, listener: (...args: any[]) => void) {
+    return events.once(eventName, listener);
+}
+
+process.on('unhandledRejection', (e) => emit('unhandledException', e));
+
 // Export Main Commands
 export {
     DeezerAlbum,
@@ -503,7 +525,10 @@ export {
     video_basic_info,
     video_info,
     yt_validate,
-    InfoData
+    InfoData,
+    emit,
+    on,
+    once
 };
 
 // Export Types
@@ -545,5 +570,7 @@ export default {
     validate,
     video_basic_info,
     video_info,
-    yt_validate
+    yt_validate,
+    on,
+    once
 };

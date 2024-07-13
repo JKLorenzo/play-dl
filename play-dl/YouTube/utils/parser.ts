@@ -241,3 +241,25 @@ function unblurThumbnail(thumbnail: YouTubeThumbnail) {
         }
     }
 }
+
+export function parseData(player_data: any, initial_data?: any) {
+    let player_response, initial_response;
+
+    try {
+        player_response = JSON.parse(player_data);
+        if (Object.keys(player_response).length == 0) throw '';
+    } catch (_) {
+        throw player_data;
+    }
+
+    if (typeof initial_data !== 'undefined') {
+        try {
+            initial_response = JSON.parse(initial_data);
+            if (Object.keys(initial_response).length == 0) throw '';
+        } catch (_) {
+            throw initial_response;
+        }
+    }
+
+    return { player_response, initial_response };
+}

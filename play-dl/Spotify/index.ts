@@ -1,3 +1,4 @@
+import { emit } from '..';
 import { request } from '../Request';
 import { SpotifyAlbum, SpotifyPlaylist, SpotifyTrack } from './classes';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -42,52 +43,75 @@ const pattern = /^((https:)?\/\/)?open\.spotify\.com\/(?:intl\-.{2}\/)?(track|al
  * @returns A {@link SpotifyTrack} or {@link SpotifyPlaylist} or {@link SpotifyAlbum}
  */
 export async function spotify(url: string): Promise<Spotify> {
-    if (!spotifyData) throw new Error('Spotify Data is missing\nDid you forgot to do authorization ?');
-    const url_ = url.trim();
-    if (!url_.match(pattern)) throw new Error('This is not a Spotify URL');
-    if (url_.indexOf('track/') !== -1) {
-        const trackID = url_.split('track/')[1].split('&')[0].split('?')[0];
-        const response = await request(`https://api.spotify.com/v1/tracks/${trackID}?market=${spotifyData.market}`, {
-            headers: {
-                Authorization: `${spotifyData.token_type} ${spotifyData.access_token}`
-            }
-        }).catch((err: Error) => {
-            return err;
-        });
-        if (response instanceof Error) throw response;
-        const resObj = JSON.parse(response);
-        if (resObj.error) throw new Error(`Got ${resObj.error.status} from the spotify request: ${resObj.error.message}`);
-        return new SpotifyTrack(resObj);
-    } else if (url_.indexOf('album/') !== -1) {
-        const albumID = url.split('album/')[1].split('&')[0].split('?')[0];
-        const response = await request(`https://api.spotify.com/v1/albums/${albumID}?market=${spotifyData.market}`, {
-            headers: {
-                Authorization: `${spotifyData.token_type} ${spotifyData.access_token}`
-            }
-        }).catch((err: Error) => {
-            return err;
-        });
-        if (response instanceof Error) throw response;
-        const resObj = JSON.parse(response);
-        if (resObj.error) throw new Error(`Got ${resObj.error.status} from the spotify request: ${resObj.error.message}`);
-        return new SpotifyAlbum(resObj, spotifyData, false);
-    } else if (url_.indexOf('playlist/') !== -1) {
-        const playlistID = url.split('playlist/')[1].split('&')[0].split('?')[0];
-        const response = await request(
-            `https://api.spotify.com/v1/playlists/${playlistID}?market=${spotifyData.market}`,
-            {
-                headers: {
-                    Authorization: `${spotifyData.token_type} ${spotifyData.access_token}`
+    emit('debug', `spotify() s()`);
+    emit('debug', `url: ${url}`);
+
+    let returnData: Spotify;
+
+    try {
+        if (!spotifyData) throw new Error('Spotify Data is missing\nDid you forgot to do authorization ?');
+        const url_ = url.trim();
+        if (!url_.match(pattern)) throw new Error('This is not a Spotify URL');
+        if (url_.indexOf('track/') !== -1) {
+            const trackID = url_.split('track/')[1].split('&')[0].split('?')[0];
+            const response = await request(
+                `https://api.spotify.com/v1/tracks/${trackID}?market=${spotifyData.market}`,
+                {
+                    headers: {
+                        Authorization: `${spotifyData.token_type} ${spotifyData.access_token}`
+                    }
                 }
-            }
-        ).catch((err: Error) => {
-            return err;
-        });
-        if (response instanceof Error) throw response;
-        const resObj = JSON.parse(response);
-        if (resObj.error) throw new Error(`Got ${resObj.error.status} from the spotify request: ${resObj.error.message}`);
-        return new SpotifyPlaylist(resObj, spotifyData, false);
-    } else throw new Error('URL is out of scope for play-dl.');
+            ).catch((err: Error) => {
+                return err;
+            });
+            if (response instanceof Error) throw response;
+            const resObj = JSON.parse(response);
+            if (resObj.error)
+                throw new Error(`Got ${resObj.error.status} from the spotify request: ${resObj.error.message}`);
+            returnData = new SpotifyTrack(resObj);
+        } else if (url_.indexOf('album/') !== -1) {
+            const albumID = url.split('album/')[1].split('&')[0].split('?')[0];
+            const response = await request(
+                `https://api.spotify.com/v1/albums/${albumID}?market=${spotifyData.market}`,
+                {
+                    headers: {
+                        Authorization: `${spotifyData.token_type} ${spotifyData.access_token}`
+                    }
+                }
+            ).catch((err: Error) => {
+                return err;
+            });
+            if (response instanceof Error) throw response;
+            const resObj = JSON.parse(response);
+            if (resObj.error)
+                throw new Error(`Got ${resObj.error.status} from the spotify request: ${resObj.error.message}`);
+            returnData = new SpotifyAlbum(resObj, spotifyData, false);
+        } else if (url_.indexOf('playlist/') !== -1) {
+            const playlistID = url.split('playlist/')[1].split('&')[0].split('?')[0];
+            const response = await request(
+                `https://api.spotify.com/v1/playlists/${playlistID}?market=${spotifyData.market}`,
+                {
+                    headers: {
+                        Authorization: `${spotifyData.token_type} ${spotifyData.access_token}`
+                    }
+                }
+            ).catch((err: Error) => {
+                return err;
+            });
+            if (response instanceof Error) throw response;
+            const resObj = JSON.parse(response);
+            if (resObj.error)
+                throw new Error(`Got ${resObj.error.status} from the spotify request: ${resObj.error.message}`);
+            returnData = new SpotifyPlaylist(resObj, spotifyData, false);
+        } else throw new Error('URL is out of scope for play-dl.');
+    } catch (e) {
+        emit('error', e);
+        throw e;
+    } finally {
+        emit('debug', 'spotify() e()');
+    }
+
+    return returnData;
 }
 /**
  * Validate Spotify url
@@ -181,35 +205,47 @@ export async function sp_search(
     type: 'album' | 'playlist' | 'track',
     limit: number = 10
 ): Promise<Spotify[]> {
+    emit('debug', `sp_search() s()`);
+    emit('debug', `query: ${query}`);
+
     const results: Spotify[] = [];
-    if (!spotifyData) throw new Error('Spotify Data is missing\nDid you forget to do authorization ?');
-    if (query.length === 0) throw new Error('Pass some query to search.');
-    if (limit > 50 || limit < 0) throw new Error(`You crossed limit range of Spotify [ 0 - 50 ]`);
-    const response = await request(
-        `https://api.spotify.com/v1/search?type=${type}&q=${query}&limit=${limit}&market=${spotifyData.market}`,
-        {
-            headers: {
-                Authorization: `${spotifyData.token_type} ${spotifyData.access_token}`
+
+    try {
+        if (!spotifyData) throw new Error('Spotify Data is missing\nDid you forget to do authorization ?');
+        if (query.length === 0) throw new Error('Pass some query to search.');
+        if (limit > 50 || limit < 0) throw new Error(`You crossed limit range of Spotify [ 0 - 50 ]`);
+        const response = await request(
+            `https://api.spotify.com/v1/search?type=${type}&q=${query}&limit=${limit}&market=${spotifyData.market}`,
+            {
+                headers: {
+                    Authorization: `${spotifyData.token_type} ${spotifyData.access_token}`
+                }
             }
+        ).catch((err: Error) => {
+            return err;
+        });
+        if (response instanceof Error) throw response;
+        const json_data = JSON.parse(response);
+        if (type === 'track') {
+            json_data.tracks.items.forEach((track: any) => {
+                results.push(new SpotifyTrack(track));
+            });
+        } else if (type === 'album') {
+            json_data.albums.items.forEach((album: any) => {
+                results.push(new SpotifyAlbum(album, spotifyData, true));
+            });
+        } else if (type === 'playlist') {
+            json_data.playlists.items.forEach((playlist: any) => {
+                results.push(new SpotifyPlaylist(playlist, spotifyData, true));
+            });
         }
-    ).catch((err: Error) => {
-        return err;
-    });
-    if (response instanceof Error) throw response;
-    const json_data = JSON.parse(response);
-    if (type === 'track') {
-        json_data.tracks.items.forEach((track: any) => {
-            results.push(new SpotifyTrack(track));
-        });
-    } else if (type === 'album') {
-        json_data.albums.items.forEach((album: any) => {
-            results.push(new SpotifyAlbum(album, spotifyData, true));
-        });
-    } else if (type === 'playlist') {
-        json_data.playlists.items.forEach((playlist: any) => {
-            results.push(new SpotifyPlaylist(playlist, spotifyData, true));
-        });
+    } catch (e) {
+        emit('error', e);
+        throw e;
+    } finally {
+        emit('debug', `sp_search() e()`);
     }
+
     return results;
 }
 /**

@@ -475,7 +475,7 @@ enum PDLEvents {
 const events = new EventEmitter();
 
 function emit<Event extends keyof typeof PDLEvents>(eventName: Event, ...args: any[]) {
-    return events.emit(eventName, args);
+    return events.emit(eventName, ...args);
 }
 
 function on<Event extends keyof typeof PDLEvents>(eventName: Event, listener: (...args: any[]) => void) {

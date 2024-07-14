@@ -1,4 +1,4 @@
-import { emit } from '../events';
+import { emit, Events } from '../events';
 import { request } from '../Request';
 import { SpotifyAlbum, SpotifyPlaylist, SpotifyTrack } from './classes';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -43,8 +43,8 @@ const pattern = /^((https:)?\/\/)?open\.spotify\.com\/(?:intl\-.{2}\/)?(track|al
  * @returns A {@link SpotifyTrack} or {@link SpotifyPlaylist} or {@link SpotifyAlbum}
  */
 export async function spotify(url: string): Promise<Spotify> {
-    emit('debug', `spotify() s()`);
-    emit('debug', `url: ${url}`);
+    emit(Events.Debug, `spotify() s()`);
+    emit(Events.Debug, `url: ${url}`);
 
     let returnData: Spotify;
 
@@ -105,10 +105,10 @@ export async function spotify(url: string): Promise<Spotify> {
             returnData = new SpotifyPlaylist(resObj, spotifyData, false);
         } else throw new Error('URL is out of scope for play-dl.');
     } catch (e) {
-        emit('error', e);
+        emit(Events.Error, e as Error);
         throw e;
     } finally {
-        emit('debug', 'spotify() e()');
+        emit(Events.Debug, 'spotify() e()');
     }
 
     return returnData;
@@ -205,8 +205,8 @@ export async function sp_search(
     type: 'album' | 'playlist' | 'track',
     limit: number = 10
 ): Promise<Spotify[]> {
-    emit('debug', `sp_search() s()`);
-    emit('debug', `query: ${query}`);
+    emit(Events.Debug, `sp_search() s()`);
+    emit(Events.Debug, `query: ${query}`);
 
     const results: Spotify[] = [];
 
@@ -240,10 +240,10 @@ export async function sp_search(
             });
         }
     } catch (e) {
-        emit('error', e);
+        emit(Events.Error, e as Error);
         throw e;
     } finally {
-        emit('debug', `sp_search() e()`);
+        emit(Events.Debug, `sp_search() e()`);
     }
 
     return results;

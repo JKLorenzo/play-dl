@@ -6,7 +6,7 @@ import { InfoData, StreamInfoData } from './constants';
 import { URL, URLSearchParams } from 'node:url';
 import { parseAudioFormats } from '../stream';
 import { parseData } from './parser';
-import { emit } from '../../events';
+import { emit, Events } from '../../events';
 
 interface InfoOptions {
     htmldata?: boolean;
@@ -132,8 +132,8 @@ export function extractID(url: string): string {
  * @returns Video Basic Info {@link InfoData}.
  */
 export async function video_basic_info(url: string, options: InfoOptions = {}): Promise<InfoData> {
-    emit('debug', `video_basic_info() s()`);
-    emit('debug', `url: ${url}`);
+    emit(Events.Debug, `video_basic_info() s()`);
+    emit(Events.Debug, `url: ${url}`);
 
     let infoData = {} as InfoData;
 
@@ -355,10 +355,10 @@ export async function video_basic_info(url: string, options: InfoOptions = {}): 
 
         infoData = { LiveStreamData, html5player, format, video_details, related_videos: related };
     } catch (e) {
-        emit('error', e);
+        emit(Events.Error, e as Error);
         throw e;
     } finally {
-        emit('debug', 'video_basic_info() e()');
+        emit(Events.Debug, 'video_basic_info() e()');
     }
 
     return infoData;
@@ -375,8 +375,8 @@ export async function video_basic_info(url: string, options: InfoOptions = {}): 
  * @returns Deciphered Video Info {@link StreamInfoData}.
  */
 export async function video_stream_info(url: string, options: InfoOptions = {}): Promise<StreamInfoData> {
-    emit('debug', `video_stream_info() s()`);
-    emit('debug', `url: ${url}`);
+    emit(Events.Debug, `video_stream_info() s()`);
+    emit(Events.Debug, `url: ${url}`);
 
     let streamInfoData = {} as StreamInfoData;
 
@@ -482,10 +482,10 @@ export async function video_stream_info(url: string, options: InfoOptions = {}):
             true
         );
     } catch (e) {
-        emit('error', e);
+        emit(Events.Error, e as Error);
         throw e;
     } finally {
-        emit('debug', 'video_stream_info() e()');
+        emit(Events.Debug, 'video_stream_info() e()');
     }
 
     return streamInfoData;
@@ -662,8 +662,8 @@ async function acceptViewerDiscretion(
     body: string,
     extractRelated: boolean
 ): Promise<{ streamingData: any; relatedVideos?: any }> {
-    emit('debug', `acceptViewerDiscretion() s()`);
-    emit('debug', `videoId: ${videoId}`);
+    emit(Events.Debug, `acceptViewerDiscretion() s()`);
+    emit(Events.Debug, `videoId: ${videoId}`);
 
     let data = {} as { streamingData: any; relatedVideos?: any };
 
@@ -751,10 +751,10 @@ async function acceptViewerDiscretion(
                 : undefined
         };
     } catch (e) {
-        emit('error', e);
+        emit(Events.Error, e as Error);
         throw e;
     } finally {
-        emit('debug', 'video_stream_info() e()');
+        emit(Events.Debug, 'video_stream_info() e()');
     }
 
     return data;

@@ -1,25 +1,31 @@
 import EventEmitter from 'events';
 
-enum PDLEvents {
-    debug,
-    error,
-    unhandledException
+type PDLEvents = {
+    debug: [message: String];
+    error: [error: Error];
+    uncaughtException: [error: Error];
+};
+
+enum Events {
+    Debug = 'debug',
+    Error = 'error',
+    UncaughtException = 'uncaughtException'
 }
 
 const events = new EventEmitter();
 
-function emit<Event extends keyof typeof PDLEvents>(eventName: Event, ...args: any[]) {
+function emit<Event extends keyof PDLEvents>(eventName: Event, ...args: PDLEvents[Event]) {
     return events.emit(eventName, ...args);
 }
 
-function on<Event extends keyof typeof PDLEvents>(eventName: Event, listener: (...args: any[]) => void) {
-    return events.on(eventName, listener);
+function on<Event extends keyof PDLEvents>(eventName: Event, listener: (...args: PDLEvents[Event]) => void) {
+    return events.on(eventName, listener as (...args: any[]) => void);
 }
 
-function once<Event extends keyof typeof PDLEvents>(eventName: Event, listener: (...args: any[]) => void) {
-    return events.once(eventName, listener);
+function once<Event extends keyof PDLEvents>(eventName: Event, listener: (...args: PDLEvents[Event]) => void) {
+    return events.once(eventName, listener as (...args: any[]) => void);
 }
 
-process.on('unhandledRejection', (e) => emit('unhandledException', e));
+process.on('uncaughtException', (e) => emit(Events.UncaughtException, e));
 
-export { emit, on, once };
+export { Events, emit, on, once };

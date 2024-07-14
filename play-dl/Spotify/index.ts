@@ -1,4 +1,4 @@
-import { emit } from '..';
+import { emit } from '../events';
 import { request } from '../Request';
 import { SpotifyAlbum, SpotifyPlaylist, SpotifyTrack } from './classes';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';

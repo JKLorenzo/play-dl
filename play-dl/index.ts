@@ -79,6 +79,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { stream as yt_stream, StreamOptions, stream_from_info as yt_stream_info } from './YouTube/stream';
 import { yt_search } from './YouTube/search';
 import { EventEmitter } from 'stream';
+import { on, once } from './events';
 
 async function stream(url: string, options: { seek?: number } & StreamOptions): Promise<YouTubeStream>;
 async function stream(url: string, options?: StreamOptions): Promise<YouTubeStream | SoundCloudStream>;
@@ -466,28 +467,6 @@ function attachListeners(player: EventEmitter, resource: YouTubeStream | SoundCl
     player.once(AudioPlayerStatus.Idle, idleListener);
 }
 
-enum PDLEvents {
-    debug,
-    error,
-    unhandledException
-}
-
-const events = new EventEmitter();
-
-function emit<Event extends keyof typeof PDLEvents>(eventName: Event, ...args: any[]) {
-    return events.emit(eventName, ...args);
-}
-
-function on<Event extends keyof typeof PDLEvents>(eventName: Event, listener: (...args: any[]) => void) {
-    return events.on(eventName, listener);
-}
-
-function once<Event extends keyof typeof PDLEvents>(eventName: Event, listener: (...args: any[]) => void) {
-    return events.once(eventName, listener);
-}
-
-process.on('unhandledRejection', (e) => emit('unhandledException', e));
-
 // Export Main Commands
 export {
     DeezerAlbum,
@@ -526,7 +505,6 @@ export {
     video_info,
     yt_validate,
     InfoData,
-    emit,
     on,
     once
 };

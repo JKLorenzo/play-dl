@@ -6,7 +6,7 @@ import { InfoData, StreamInfoData } from './constants';
 import { URL, URLSearchParams } from 'node:url';
 import { parseAudioFormats } from '../stream';
 import { parseData } from './parser';
-import { emit } from '../..';
+import { emit } from '../../events';
 
 interface InfoOptions {
     htmldata?: boolean;

@@ -79,7 +79,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { stream as yt_stream, StreamOptions, stream_from_info as yt_stream_info } from './YouTube/stream';
 import { yt_search } from './YouTube/search';
 import { EventEmitter } from 'stream';
-import { on, once } from './events';
+import { emit, Events, on, once } from './events';
 
 async function stream(url: string, options: { seek?: number } & StreamOptions): Promise<YouTubeStream>;
 async function stream(url: string, options?: StreamOptions): Promise<YouTubeStream | SoundCloudStream>;
@@ -208,6 +208,7 @@ async function search(
     query: string,
     options: SearchOptions = {}
 ): Promise<YouTube[] | Spotify[] | SoundCloud[] | Deezer[]> {
+    emit(Events.Debug, `search() query: ${query}`);
     if (!options.source) options.source = { youtube: 'video' };
     const query_ = encodeURIComponent(query.trim());
     if (options.source.youtube)

@@ -84,8 +84,8 @@ export function ParseSearchResult(html: string, options?: ParseSearchInterface):
             }
         }
     } catch (e) {
-        emit(Events.Error, e as Error);
-        emit(Events.Debug, html);
+        emit(Events.Error, e);
+        emit(Events.Error, html);
         throw e;
     } finally {
         emit(Events.Debug, 'ParseSearchResult() e()');

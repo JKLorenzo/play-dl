@@ -355,7 +355,7 @@ export async function video_basic_info(url: string, options: InfoOptions = {}): 
 
         infoData = { LiveStreamData, html5player, format, video_details, related_videos: related };
     } catch (e) {
-        emit(Events.Error, e as Error);
+        emit(Events.Error, e);
         throw e;
     } finally {
         emit(Events.Debug, 'video_basic_info() e()');
@@ -482,7 +482,7 @@ export async function video_stream_info(url: string, options: InfoOptions = {}):
             true
         );
     } catch (e) {
-        emit(Events.Error, e as Error);
+        emit(Events.Error, e);
         throw e;
     } finally {
         emit(Events.Debug, 'video_stream_info() e()');
@@ -751,7 +751,7 @@ async function acceptViewerDiscretion(
                 : undefined
         };
     } catch (e) {
-        emit(Events.Error, e as Error);
+        emit(Events.Error, e);
         throw e;
     } finally {
         emit(Events.Debug, 'video_stream_info() e()');

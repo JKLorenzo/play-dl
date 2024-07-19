@@ -105,7 +105,7 @@ export async function spotify(url: string): Promise<Spotify> {
             returnData = new SpotifyPlaylist(resObj, spotifyData, false);
         } else throw new Error('URL is out of scope for play-dl.');
     } catch (e) {
-        emit(Events.Error, e as Error);
+        emit(Events.Error, e);
         throw e;
     } finally {
         emit(Events.Debug, 'spotify() e()');
@@ -240,7 +240,7 @@ export async function sp_search(
             });
         }
     } catch (e) {
-        emit(Events.Error, e as Error);
+        emit(Events.Error, e);
         throw e;
     } finally {
         emit(Events.Debug, `sp_search() e()`);

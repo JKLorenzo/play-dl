@@ -1,8 +1,8 @@
 import EventEmitter from 'events';
 
 type PDLEvents = {
-    debug: [message: String];
-    error: [error: Error];
+    debug: [data: any];
+    error: [error: any];
     uncaughtException: [error: Error];
 };
 
